@@ -1,0 +1,1002 @@
+@ExtendWith(SpringExtension.class)
+
+  @WebAppConfiguration
+
+  @ContextConfiguration
+  class WacTests{
+    
+  }
+
+//
+ExtendWith(SpringExtension.class)
+
+  @WebAppConfiguration("webapp")
+
+           @ContextConfiguration("/spring/test-servlet-config.xml")
+
+           class WacTests{
+  
+  
+}
+//
+@ExtendWith(SpringExtension.class)
+
+  @WebAppConfiguration("classpath:test-web-resources")
+
+  @ContextConfiguration("file:src/main/webapp/WEB-INF/servlet-config.xml")
+  class WacTests{
+    
+  }
+//
+@SpringJUnitWebConfig
+  class WacTests{
+
+    @Autowired
+    WebApplicationContext wac;
+
+    @Autowired
+    MockServletContext servletContext;
+
+    @Autowired
+    MockHttpSession session;
+
+    @Autowired
+    MockHttpServletRequest request;
+
+    @Autowired
+    MockHttpServletResponse response;
+
+    @Autowired
+    ServletWebRequest webRequest;
+  }
+//
+@ExtendWith(SpringExtension.class)
+  @WebAppConfiguration
+  @ContextHierarchy({
+    @ContextConfiguration(classes = TestAppConfig.class),
+    @ContextConfiguration(classes = WebConfig.class)
+  })
+  class ControllerIntegerationTests{
+
+    @Autowired
+    WebApplicationContext wac;
+    
+  }
+//
+@ExtendWith(SpringExtension.class)
+  @WebAppConfiguration
+  @ContextConfiguration("file:src/main/webapp/WEB-INF/servlet-config.xml")
+  public abstract class AbstractWebTests {}
+
+@ContextHierarchy(@ContextConfiguration("/spring/soup-ws-config.xml"))
+  public class SoapWebServiceTests extends AbstractWebTests {}
+
+@ContextHierarchy(@ContextConfiguration("/spring/soap-ws-config.xml"))
+  public class RestWebServiceTests extends AbstractWebTests {}
+
+//
+@ExtendWith(SpringExtension.class)
+  @ContextHierarchy({
+    @ContextConfiguration("parent", locations = "/app-config.xml"),
+    @ContextConfiguration(name = "child", locations = "/user-config.xml")
+  
+  })
+
+  class BaseTests {}
+
+@ContextHierarchy{
+  @ContextConfiguration(name = "child", locations = "/order-config.xml")
+    )
+    class ExtendedTests extends BaseTests {}
+  //
+  @ExtendeWith(SpringExtension.class)
+    @ContextHierarchy({
+      @ContextConfiguration(name = "parent", locations = "/app-config.xml"),
+      @CotextConfiguration(name = "child", locations = "/user-config.xml")
+    })
+    class BaseTests {}
+
+  @ContextHierarchy(
+    @ContextConfiguration(
+      name = "child",
+      locations = "/test-user-config.xml"
+      inheritLocations = false
+    )
+  )
+    class ExtendedTests extends BaseTests {}
+  //
+  @ExtendWith(SpringExtension.class)
+
+    @ContextConfiguration("repository-config.xml")
+    class HibernateTitleRepositoryTests {
+
+      @Autowired
+      HibernateTitleRepository titleRepository;
+    
+@Test
+      void findById(){
+        Title findById = titleRepository.findById(new Long(10));
+      assertNotNull(title);
+      }
+    }
+  //
+  @ExtendWith(SpringExtension.class)
+
+    @ContextConfiguration("repository-config.xml")
+    class HibernateTitleRepositoryTests{
+
+      HibernateTitleRepository titleRepository;
+
+      @Autowired
+      void setTitleRepository(HibernateTitleRepository titleRepository){
+        this.titleRepository = titleRepository;
+      }
+
+      @Test
+      void findById(){
+        Title title = titleRepository.findById(new Long(10));
+      assertNotNull(title);
+      }
+    }
+
+  //
+
+  @Autowired
+    @Override
+    public void setDataSource(@Qualifier("myDataSource"") DataSource 
+                              dataSource){
+    super.setDataSource(dataSource);
+  }
+  
+
+
+  //
+  @SpringJUnitWebConfig
+  class RequestScopedBeanTests{
+
+    @Autowired UserService userService;
+    @Autowired MockHttpServletRequest request;
+
+    @Test
+    void requestScope(){ 
+    request.setParameter("user", "enigma");
+  request.setParameter("pswd, "$pr!ng");
+
+      LoginResults results = userService.loginUser();
+  }
+  }
+  //
+  @SpringJUnitWebConfig
+  class SessionScopedBeanTests{
+    @Autowired UserService userService;
+    @Autowired MockHttpSession session;
+
+    @Test 
+    void sessionScope() throws Exception
+    session.setAttribute("theme", "blue");
+
+    Results results = userService.processUserPreferences();
+  
+  }}
+
+//
+@SpringJUnitWebConfig(TestConfig.class)
+  @Transactional
+  class HibernateUserRepositoryTests{
+
+    @Autowired
+    HibernateUserRepository repository;
+  
+    @Autowired
+    SessionFactory sessionFactory;
+
+    JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    void setDataSource(DataSource dataSource){
+      this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    @Test
+    void createUser()
+    {
+      final int count = countRowsInTable("user");
+
+      User user = new User();
+      repository.save(user);
+
+      sessionFactory.getCurrentSession().flush();
+      assertNumUser(count + 1);
+    }
+    private int countRowsInTable(String tableName){
+      return JdbcTestUtils.countRowsInTable(jdbcTemplate, tableName);
+      
+    }
+    private void assertNumUser(int expected)
+    {
+      assertEquals("Number of rows in the[user] table." , expected,
+                  countRowsInTable("user"));
+      
+    }
+  }
+//
+@ContextConfiguration(classes = TestConfig.class)
+  public class ProgrammaticTransactionManagermentTests extends
+  AbstractTransactionalJUnit4SpringContextTests{
+
+    @Test
+    public void transactionalTest(){
+      assertNumUsers(2);
+
+      deleteFromTables("user");
+
+      TestTransaction.flagForCommit();
+      TestTransaction.end();
+      assertFalse(TestTransaction.isActive());
+      assertNumUsers(0);
+
+      TestTransaction.start();
+      
+    }
+
+    protected void assertNumUsers(int expected){
+      assertEquals("Number of rows in the [user] table.", expected,
+                  countRowsInTable("user"));
+    }
+  }
+
+//
+@SpringJUnitConfig
+  @Transactional(transactionManager = "txMgr")
+  @Commit
+  class FictitiousTransactionTest{
+
+    @BeforeTransaction
+    void verifyInitialDatabaseState(){
+      
+    }
+
+    @BeforeEach
+    void setUpTestDataWithinTransaction(){
+      
+    }
+
+    @Test
+    @Rollback
+    void modifyDatabaseWithinTransaction(){
+      
+    }
+
+    @AfterEach
+    void tearDownWithinTransaction(){
+      
+    }
+
+    @AfterTransaction
+    void verifyFinalDatabaseState(){
+      
+    }
+  }
+
+//
+@Autowired
+  SessionFactory sessionFactory;
+
+@Transactional
+  @Test
+  public void falsePositive(){
+  updateEntityInHibernateSession();
+  }
+
+@Transactional
+  @Test(expected = ...)
+  public void updateWithSessionFlush(){
+  updateEntityInHibernateSession();
+
+  sessionFactory.getCurrentSession().flush();
+  }
+
+//
+@PersistenceContext
+  EntityManager entityManager;
+
+@Transactional
+  @Test
+  public void falsePositive()
+  {
+  updateEntityInJpaPersistenceContext();
+  }
+
+@Transactional
+  @Test(expected = ...)
+  public void updateWithEntityManagerFlush(){
+
+  updateEntityInJpaPersistenceContext();
+
+  entityManager.flush();
+  }
+//
+
+@Autowired
+  JpaPersonRepositry repo;
+
+@PersistenceContext
+  EntityManager entityManager;
+
+@Transactional
+  @Test
+  void savePerson(){
+
+  @PostPersist
+    repo.save(new Person("Jane"));
+  
+entityManager.flush();
+
+  
+}
+
+//
+@Test
+  void databaseTest(){
+  ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+  populator.addScripts(
+    new ClassPathResource("test-schema.sql"),
+  new ClassPathResource("test-data.sql")
+
+    populater.setSeparator("@@");
+  populator.execute(this.dataSource);
+  
+  }
+//
+
+@SpringJUnitConfig
+  @Sql("/test-schema.sql")
+  class DatabaseTests{
+
+    @Test
+    void emptySchemaTest(){
+      
+    }
+
+    @Test
+    @Sql({"/test-schema.sql", "/test-user-data.sql""})
+  void userTest(){
+    
+  }
+  
+  }
+
+//
+@Test
+  @Sql(scripts = "/test-schema.sql", config = SqlConfig(commentPrefix = "'"))
+  @Sql("/test-user-data.sql")
+  void userTest(){
+
+  
+  }
+
+//
+@Test
+  @SqlGroup({
+    @Sql(scripts = "/test-schema.sql", config = SqlConfig(commentPrefix = "'")),
+    @Sql("/test-user-data.sql")
+  
+  )}
+            void userTest(){
+  
+            }
+
+//
+@Test
+  @Sql
+  (
+    scripts = "create-test-data.sql",
+    config = @SqlConfig(transactionMode = ISOLATED)
+  )
+  @Sql(
+    scripts = "delete-test-data.sql",
+    config = @SqlConfig(transactionMode = ISOLATED),
+    executionPhase = AFTER_TEST_METHOD
+  )
+  void userTest(){
+  
+  }
+//
+@SpringJUnitConfig(TestDatabaseConfig.class)
+  @Transactional
+  class TransactionalSqlScriptsTests{
+
+    final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    TransactionalSqlScriptsTests(DataSource  dataSource){
+      this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    @Test
+    @Sql("/test-data.sql")
+    void usersTest(){
+      assertEquals(2);
+      
+    }
+    int countRowsInTable(String tableName){
+      return JdbcTestUtils.countRowsInTable(jdbcTemplate, tableName);
+    }
+    void assertNumUsers(int expected){
+      assertEquals(expected, countRowsInTable("user"),
+                   "Number of rows in the [user] table.");
+    }
+  }
+
+//
+@RunWith(SpringRunner.class)
+  @TestExecutionListeners({})
+  public class SimpleTest{
+
+    @Test
+    public void testMethod(){
+      
+    }
+  }
+
+//
+@ContextConfiguration
+  public class IntegerationTest{
+
+    @ClassRule
+    public static final SpringClassRule springClassRule = new SpringClassRule();
+
+    @Rule
+    public final SpringMethodRule springMethodRule = new SpringMethodRule();
+
+    @Test
+    public void testMethod()
+    {
+      
+    }
+  }
+//
+@ExtendWith(SpringExtension.class)
+
+  @ContextConfiguration(classes = TestConfig.class)
+
+  class SimpleTests{
+
+    @Test
+    void testMethod(){
+      
+    }
+  }
+
+//
+@SpringJUnitConfig(TestConfig.class)
+  class SimpleTests{
+
+    @Test
+    void testMethod()
+    {}
+  
+  }
+
+//
+@SpringJUnitConfig(TestConfig.class)
+  class SimpleTests{
+
+    @Test
+    void testMethod(){
+      
+    }
+  }
+//
+@SpringJUnitConfig(TestConfig.class)
+  class OrderServiceIntegrationTests{
+
+    private final OrderService orderService;
+
+    @Autowired
+    OrderServiceIntegrationTests(OrderService orderService){
+      this.orderService = orderService;
+    }
+    
+  }
+//
+@SpringJUnitConfig(TestConfig.class)
+  class OrderServiceIntegrationTests{
+
+    private final OrderService orderService;
+
+    OrderServiceIntegrationTests(OrderService orderService){
+      this.orderService = orderService;
+    }
+    
+  }
+//
+@SpringJUnitConfig(TestConfig.class)
+  class OrderServiceIntegrationTests{
+
+    @Test
+    void deleteOrder(@Autowired OrderService orderService){
+      
+    }
+  }
+//
+@SpringJUnitConfig(TestConfig.class)
+  class OrderServiceIntegrationTests{
+
+    @RepeatedTest(10)
+    void placeOrderRepeatedly(RepetitionInfo repetitionInfo,
+                             @Autowired OrderService orderService){
+
+      
+                             }
+  }
+
+//
+@SpringJUnitConfig(TestConfig.class)
+  class GreetingServiceTests {
+
+    @Nested
+    @ActiveProfiles("lang_en")
+    class EnglishGreetings{
+
+      @Test
+      void hello(@Autowired GreetingService service){
+        assertThat(service.greetWorld()).isEqualTo("Hello, World!");
+        
+      }
+    }
+
+    @Nested
+    @ActiveProfiles("lang_de")
+  class GermanGreetings{
+
+    @Test
+    void hello(@Autowired GreetingService service){
+      assertThat(service.greetWorld()).isEqualTo("Hallo, Welt!");
+      
+    }
+  }
+  
+  
+  }
+//
+WebTestClient client = WebTestClient.bindToController(new TestController()).build();
+
+//
+WebTestClient client = 
+  MockMvcWebTestClient.bindToController(new TestController()).build();
+//
+@SpringJunitConfig(WebConfig.class)
+  class MyTests{
+
+    WebTestClient client;
+
+    @BeforeEach
+    void setUp(ApplicationContext context)
+    {
+      client = WebTestClient.bindToApplicationContext(context).build();
+    }
+  }
+//
+@ExtendWith(SpringExtension.class)
+  @WebAppConfiguration("classpath:METa-INF/web-resource")
+  @ContextHierarchy({
+    @ContextConfiguration(classes = RootConfig.class),
+    @ContextConfiguration(classes = WebConfig.class)
+  })
+
+  class myTests{
+
+    @Autowired
+    WebApplicationContext wac;
+
+    WebTestClient client;
+
+    @BeforeEach
+    void setUp(){
+      client = MockMvcWebTestClient.bindToApplicationContext(this.wac).build();
+    }
+  }
+
+//
+Router Function<?> route = ...
+  client = WebTestClient.bindToRouterFunction(route).build();
+
+//
+client = WebTestClient.bindToServer().baseUrl("http://localhost:8080").build();
+//
+client =WebTestClient.bindToControlelr(new TestController())
+  .configurationClient()
+  .baseUrl("/test")
+  .build();
+
+//
+client.get().uri("/persons/1")
+  .accept(MediaType.APPLICATION_JSON)
+  .exchange()
+  .expectStatus().isOk()
+  .expectHeader().contentType(MediaType.APPLICATION_JSON);
+
+//
+client.get().uri("/persons/1")
+  .accept(MediaType.APPLICATION_JSON)
+  .exchange()
+  .expectAll(
+    spec - > spec.expectStatus().isOk(),
+    spec -> spec.expectHeader().contentType(MediaType.APPLICATION_JSON)
+    
+  );
+//
+client.get().uri("/persons")
+
+  .exchange()
+  .expextStatus().isOk()
+  .expectBodyList<Person>().hasSize(3).contains(person)
+
+  //
+  client.get().uri("/persons/1")
+  .exchange()
+  .expectStatus().isOk()
+  .expectBody(Person.class)
+  .consumeWith(result -> {
+    
+  });
+
+
+//
+EntityExchangeResult<Person> result = client.get().uri("/persons/1")
+  .exchange()
+  .expectStatus().isOk()
+  .expectBody(Person.class)
+  .returnResult();
+//
+client.get().uri("/persons")
+  .body(personMono, Person.class)
+  .exchange()
+  .expectStatus().isCreated()
+  .expectBody().isEmpty();
+//
+client.get().uri("/persons/123")
+  .exchange()
+  .expectStatus().isNotFound()
+  .expectBody(Void.class);
+
+//
+.expectBody()
+  .json("{\"name\":\"Jane\"}")
+  //
+  
+  jsonPath("$[0].name").isEqualTo("Jane")
+
+  //
+  FluxExchangeResult<MyEvent> result = client.get().uri("/events")
+  .accept(TEXT_EVENT_STREAM)
+  .exchange()
+  .expectStatus().isOk()
+  .returnResult(MyEvent.class);
+//
+Flux<Event> eventFlux = result.getResponseBody();
+
+StepVerifier.create(eventFlux)
+  .expectNext(person)
+  .expectNextCount(4)
+  .consumeNextWith(p -> ...)
+  .thenCancel()
+  .verify();
+//
+EntityExchangeResult<Person> result = client.get().uri("/persons/1")
+  .exchange()
+  .expectStatus().isOk()
+  .expectBody(Person.class)
+  .returnResult();
+
+EntityExchangeResult<Void> result = client.get().uri("/path")
+  .exchange()
+  .expectBody().isEmpty();
+//
+MockMvcWebTestClient.resultActionsFor(result)
+  .andExpect(model().attribute("integer", 3))
+  .andExpect(model().attribute("string", "a string value"));
+
+//
+
+
+  MockMvcBuilders.
+    MockMvcRequestBuilders
+    MockMvcResultMatchers
+    MockMvcResultHandlers
+
+    //
+    class MyWebTests{
+
+    MockMvc mockMvc;
+
+    @BeforeEach
+    void setUp(){
+    this.mockMvc = MockMvcBuilders.standaloneSetup(new
+                                                   AccountController()).build();
+    }
+    }
+
+//
+@SpringJUnitConfig(locations = "my-servlet-context.xml")
+  class MyWebTests{
+
+    MockMvc mockMvc;
+
+    @BeforeEach
+    void setup(WebApplicationContext wac){
+      this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+    }
+  }
+
+//
+@SpringJUnitWebConfig(locations = "test-servlet-context.xml")
+  class AccountTests{
+
+    @Autowired
+    AccountService accountService;
+
+    MockMvc mockMvc;
+
+    @BeforeEach
+    void setup(WebApplicationContext wac){
+      this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+    }
+  }
+//
+
+MockMvc mockMvc = standaloneSetup(new MusicController())
+  .defaultRequest(get("/").accept(MediaType.APPLICATION_JSON))
+
+  .alwaysExpext(status().isOk())
+  .alwaysExpect(content().contentType("application/json;charset=UTF-8"))
+  .build();
+//
+MockMvvc mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
+  .apply(sharedHttpSession())
+  .build();
+
+//
+mockMvc.perform(post("/hotels/{id}", 42).accept(MediaType.APPLICAITON_JSON));
+//
+mockMvc.perform(multipart("/doc").file("a1", "ABC".getBytes("UTF-8")));
+
+mockMvc.perform(get("/hotels?thing={thing}", "somewhere"));
+
+mockMvc.perform(get("/hotels").param("thing", "somewhere"));
+
+mockMvc.perform(get("/app/main/hotels/{id}").contextPath("/app").servletPath("/main")
+
+                //
+class MyWebTests{
+  MockMvc mockMvc;
+
+  @BeforeEach
+  void setup(){
+    mockMvc = standaloneSetup(new AccountController())
+      .defaultRequest(get("/")
+                     .contextPath("/app").servletPath("/main")
+                     .accept(MediaType.APPLICATION_JSON).build();
+      
+      }
+}                
+mockMvc.perform(get("/accounts/1")).andExpect(status().isOk());
+
+mockMvc.perform(get("/accounts/1")).andExpectAll(
+  status().isOk(),
+  content().contentType("application/json;charset=UTF-8"));
+
+//
+mockMvc.perform(post("/persons"))
+
+  .andExpect(status().isOk))
+.andExpect(model().attributeHasErrors("person"));
+
+//
+
+mockMvc.perform(post("/persons"))
+  .andDo(print())
+  .andExpect(status().isOk())
+  .andExpect(model().attributeHasErrors("person"));
+
+//
+MvcResult mcvResult = 
+  mockMvc.perform(post("/persons")).addExpect(status().isOk()).andReturn();
+//
+standaloneSetup(new SimpleController())
+  .alwaysExpect(status().isOk())
+  .alwaysExpect(content().contentType("application/json;charset=UTF-8"))
+  .build()
+  //
+  mockMvc.perform(get("/people").accept(MediaType.APPLICATION_JSON))
+  .andExpect(jsonPath("$.links[?(@rel ==
+                                'self')].href").value("http://localhost:8080/people"));
+
+//
+May<String, String>ns = Collections.singletonMap("ns", 
+                                                 "http://www.w3.org/2005/Atom");
+mockMvc.perform(get("/handle").accept(MediaType.APPLICATION_XML))
+  .andExpect(xpath("/person/ns:link[@rel='self']/@href",
+                   ns).string("http://localhost:8080/people"));
+//637P
+@Test 
+  void test()throws Exception{
+  MvcResult mvcResult = this.mockMvc.perform(get("/path"))
+ .andExpect(status().isOk())
+  .andExpect(request().asycStarted())
+  .andExpect(request().asyncResult("body")) 
+  .andReturn();
+
+this.mockMvc.perform(asyncDispatch(mvcResult))
+  .andExpect(status().isOk())
+  .andExpect(content().string("body"));
+  }
+//
+WebTestClient client = MockMvcWebTestClient.bindToController(new 
+     SseController()).build();
+
+FluxExchangeResult<Person> exchangeResult = client.get()
+  .uri("/persons")
+  .exchange()
+  .epectStatus().isOk()
+  .expectHeader().contentType("text/event-stream")
+  .returnResult(Person.class);
+
+StepVerifier.create(exchangeResult.getResponseBody())
+  .expectNext(new Person("No"), new Person("N1"), new Person("N2"))
+  .expectNextCount(4)
+  .consumeNextWith(person -> assertThat(person.getName()).isWith("7"))
+  .thenCancel()
+  .verrify();
+//
+mockMvc = standaloneSetup(new PersonController()).addFilters(new
+                                                            CharacterEncodingsFilter()).build();
+
+///
+MockHttpServletRequestBuilder createMessage = post("/messages/")
+.param("summary", "Spring Rocks")
+  .param("text", "In case you didn't know, Spring Rocks!");
+
+mockMvc.perform(createMessage)
+  .andExpect(status().is3xxRedirection())
+  .andExpect(redirectedUrl("/messages/123"));
+//
+mockMvc.perform(get("/messages/form"))
+  .andExpect(xpath("//input[@name='summary']").exists())
+  .andExpect(xpath("//textarea[@name= 'text']").exists());
+//
+String summaryParamName = "summary";
+String textParamName = "text";
+mockMvc.perform(get("/messages/form"))
+  .andExpect(xpath("//input[@name='" + summaryParamName + "').exists())
+  .andExpect(xpath("//textarea[@name='" + textParamName + "']").exists());
+
+MockHttpServletRequestBuilder createMessage = post("/messages/")
+  .param(summaryParamName, "Spring Rocks")
+  .param(textParamName, "In case you didn't know, Spring Rocks!");
+
+mockMvc.perform(createMessage)
+  .andExpect(status().is3xxRedirection())
+  .andExpect(redirectedUrl("/messages/123"));
+//
+WebClient webClient;
+
+@BeforeEach
+  void setup(WebApplicationContext context){
+  webClient = MockMvcWebClientBuilder
+  .webAppContextSetup(context)
+  .build();
+  }
+//
+HtmlPage createMsgFormPage = webClient.getPage("http://localhost/messages/form");
+
+//646P
+HtmlForm form = createMsgFormPage.getHtmlElementById("messageform");
+HtmlTextInput summaryInput = createMsgFormPage.getHtmlElementById("summary");
+summaryInput.setValueAttribute("Spring Rocks");
+HtmlTextArea textInput = createMsgFormPage.getHtmlElementById("text");
+textInput submit = form.getOneHtmlElementByAttribute("input", "type", "submit");
+HtmlSubmitInput submit = form.getoneHtmlElementByAttribute("input", "type", "submit");
+HtmlPage new MessagePage = submit.click();
+
+//
+assertThat(new MessagePage.getUrl().toString()).endsWith("/messages/123");
+String id = new MessagePage.getHtmlElementById("id").getTextContent();
+assertThat(id).isEqualTo("123");
+String summary = newMessagePage.getHtmlElementById("summary").getTextContent();
+assertThat(summary).isEqualTo("Spring Rocks");
+String text = newMessagePage.getHtmlElementById("text").getTextContent();
+assertThat(text).isEqualTo("In case you didn't know, Spring Rocks!");
+
+//
+WebClient webClient;
+
+@BeforeEach
+  void setup(WebApplicationContext context){
+  webClient = MockMvcWebClientBuilder
+  .webAppContextSetup(context)
+  .build();
+  
+}
+//
+WebClient webClient;
+
+@BeforeEach
+  void setup(){
+  webClient = MockMvcWebClientBuilder
+
+    .webAppContextSetup(context, springSecurity())
+  
+    .contextPath("")
+
+    .useMockMvcForHosts("example.com", "example.org")
+    .build();
+    }
+//
+MockMvc mockMvc = MockMvcBuilders
+  .webAppContextSetup(context)
+  .apply(springSecurity())
+  .build();
+
+webClient = MockMvcWebClientBuilder
+
+  .mockMvcSetup(mockMvc)
+
+  .contextPath("")
+
+  .userMockMvcForHosts("example.com", "example.org")
+  .build();
+//
+HtmlTextInput summaryInput = currentPage.getHtmlElementById("summary");
+summaryInput.setValueAttribute(summary);
+
+//
+public HtmlPage createMessagePage(HtmlPage currentpage ,String summary, String text){
+  setSummary(current,summary);
+}
+
+public void setSummary(HtmlPage currentPage, String summary){
+  HtmlTextInput summaryInput = currentPage.getHtmlElementById("summary");
+  summaryInput.setValueAttribute(summary);
+}
+//
+public class CreateMessagePage{
+
+  final HtmlPage currentPage;
+
+  final HtmlTextInput summaryInput;
+
+  final HtmlSubmitInput submit;
+
+  public CreateMessagePage(HtmlPage currentPage){
+    this.currentpage = currentPage;
+    this.summaryInput = currentPage.getHtmlElementById("summary");
+    this.submit = currentPage.getHtmlElementById("submit");
+  }
+  public<T> T createMessage(String summary, String text) throws Exception{
+    setSummary(summary);
+  
+  HtmlPage result = submit.click();
+    boolean error = CreateMessagePage.at(result);
+
+    return(T) (error ? new CreateMessagePage(result) : new ViewMessagePage (result));
+  }
+  public void setSummary(String summary)throws Exception{
+    summaryInput.setValueAttribute(summary);
+  }
+
+  public static boolean at(HtmlPage page){}
+  return "Create Message".equal(page.getTitleText());
+}
+}
+//651P
+@WebDriver driver;
+
+@BeforeEach
+  void setup(WebApplicationContext context){
+  driver = MockMvcHtmlUnitDriverBuilder
+  .webAppContextSetup(context)
+  .build();
+  }
+//652P부터 시작 
